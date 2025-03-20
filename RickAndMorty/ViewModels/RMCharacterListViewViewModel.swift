@@ -9,8 +9,10 @@ import UIKit
 
 protocol RMCharacterListViewViewModelDelegate: AnyObject {
     func didLoadInitialCharacters()
+    func didSelectCharacter(_ character: RMCharacter)
 }
 
+/// View Model to handle character list view logic
 final class RMCharacterListViewViewModel: NSObject {
     
     public weak var delegate: RMCharacterListViewViewModelDelegate?
@@ -30,6 +32,7 @@ final class RMCharacterListViewViewModel: NSObject {
     
     private var cellViewModels: [RMCharacterCollectionViewCellViewModel] = []
     
+    /// Fetch initial set of characters (20)
     public func fetchCharacters() {
         RMService.shared.execute(.listCharactersRequest, expecting: RMGetAllCharactersResponse.self) { [weak self] result in
             switch result {
@@ -44,8 +47,18 @@ final class RMCharacterListViewViewModel: NSObject {
             }
         }
     }
+    
+    /// Paginate if additional characters are needed
+    public func fetchAdditionalCharacters() {
+        
+    }
+    
+    public var shouldShowLoadMoreIndicator: Bool {
+        return false
+    }
 }
 
+// MARK: - Collection View
 extension RMCharacterListViewViewModel: UICollectionViewDataSource, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout {
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         return cellViewModels.count
@@ -63,6 +76,12 @@ extension RMCharacterListViewViewModel: UICollectionViewDataSource, UICollection
         let bounds = UIScreen.main.bounds
         let width = (bounds.width - 30) / 2
         return CGSize(width: width, height: width * 1.5)
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        collectionView.deselectItem(at: indexPath, animated: true)
+        let character = characters[indexPath.row]
+        delegate?.didSelectCharacter(character)
     }
     
 }
