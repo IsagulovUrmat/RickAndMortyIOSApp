@@ -85,7 +85,7 @@ final class RMCharacterCollectionViewCell: UICollectionViewCell {
         nameLabel.text = viewModel.characterName
         statusLabel.text = viewModel.characterStatusText
         
-        viewModel.fetchData { [weak self] result in
+        viewModel.fetchImage { [weak self] result in
             switch result {
             case .success(let data):
                 let image = UIImage(data: data)
