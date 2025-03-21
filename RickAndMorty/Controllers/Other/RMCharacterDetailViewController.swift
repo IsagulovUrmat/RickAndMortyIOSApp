@@ -12,11 +12,12 @@ final class RMCharacterDetailViewController: UIViewController {
 
     let viewModel: RMCharacterDetailViewViewModel
     
-    private let detailView = RMCharacterDetailView()
+    private let detailView: RMCharacterDetailView
     
     // MARK: - Init
     init(viewModel: RMCharacterDetailViewViewModel) {
         self.viewModel = viewModel
+        self.detailView = RMCharacterDetailView(frame: .zero, viewModel: viewModel)
         super.init(nibName: nil, bundle: nil)
     }
     
@@ -33,6 +34,9 @@ final class RMCharacterDetailViewController: UIViewController {
         navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .action, target: self, action: #selector(didTapShare))
         
         addConstraints()
+        
+        detailView.collectionView?.delegate = self
+        detailView.collectionView?.dataSource = self
     }
     
   
@@ -48,5 +52,35 @@ final class RMCharacterDetailViewController: UIViewController {
             detailView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
         ])
     }
+}
 
+// MARK: - CollectionView 
+extension RMCharacterDetailViewController: UICollectionViewDelegate, UICollectionViewDataSource {
+    
+    func numberOfSections(in collectionView: UICollectionView) -> Int {
+        return viewModel.sections.count
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+        10
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "cell", for: indexPath)
+        
+        switch indexPath.section {
+        case 0:
+            cell.backgroundColor = .systemPink
+        case 1:
+            cell.backgroundColor = .systemGreen
+        case 2:
+            cell.backgroundColor = .systemBlue
+        default:
+            break
+        }
+        
+        return cell
+    }
+    
+    
 }
