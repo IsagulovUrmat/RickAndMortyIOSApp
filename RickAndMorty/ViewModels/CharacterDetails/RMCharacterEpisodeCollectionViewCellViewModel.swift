@@ -14,4 +14,10 @@ final class RMCharacterEpisodeCollectionViewCellViewModel {
     init(episodeDataURL: URL?) {
         self.episodeDataURL = episodeDataURL
     }
+    
+    public func fetchEpisode() {
+        guard let url = episodeDataURL, let rmRequest = RMRequest(url: url) else {
+            return
+        }
+    }
 }
