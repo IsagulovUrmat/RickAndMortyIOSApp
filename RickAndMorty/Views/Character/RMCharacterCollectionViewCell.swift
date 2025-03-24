@@ -92,7 +92,7 @@ final class RMCharacterCollectionViewCell: UICollectionViewCell {
                 DispatchQueue.main.async {
                     self?.imageView.image = image
                 }
-            case .failure(let error):
+            case .failure:
                 break
             }
         }
