@@ -5,7 +5,7 @@
 //  Created by sunflow on 22/3/25.
 //
 
-import Foundation
+import UIKit
 
 protocol RMEpisodeDataRender {
     var name: String { get }
@@ -18,6 +18,8 @@ final class RMCharacterEpisodeCollectionViewCellViewModel: Hashable, Equatable {
     private var isFetching = false
     private var dataBlock: ((RMEpisodeDataRender) -> Void)?
     
+    public var borderColor: UIColor
+    
     private var episode: RMEpisode? {
         didSet {
             guard let model = episode else { return }
@@ -26,8 +28,9 @@ final class RMCharacterEpisodeCollectionViewCellViewModel: Hashable, Equatable {
     }
     
     // MARK: - Init
-    init(episodeDataURL: URL?) {
+    init(episodeDataURL: URL?, borderColor: UIColor = .systemBlue) {
         self.episodeDataURL = episodeDataURL
+        self.borderColor = borderColor
     }
     
     // MARK: - Public
