@@ -14,8 +14,9 @@ final class RMEpisodeDetailViewViewModel {
     
     // MARK: - Private properties
     private let endpointURL: URL?
-    private var dataTuple: (RMEpisode, [RMCharacter])? {
+    private var dataTuple: (episode: RMEpisode, characters: [RMCharacter])? {
         didSet {
+            createCellViewModels()
             delegate?.didFetchEpisodeDetails()
         }
     }
@@ -28,7 +29,7 @@ final class RMEpisodeDetailViewViewModel {
     // MARK: - Delegate
     public weak var delegate: RMEpisodeDetailViewViewModelDelegate?
     
-    public private(set) var section: [SectionType] = []
+    public private(set) var cellViewModels: [SectionType] = []
     
     
     // MARK: - Init
@@ -54,6 +55,27 @@ final class RMEpisodeDetailViewViewModel {
     
     // MARK: - Private methods
     
+    private func createCellViewModels() {
+        guard let dataTuple = dataTuple else { return }
+        let episode = dataTuple.episode
+        let characters = dataTuple.characters
+        cellViewModels = [
+            .information(viewModels: [
+                .init(title: "Episode Name", value: episode.name),
+                .init(title: "Air Date", value: episode.air_date),
+                .init(title: "Episode", value: episode.episode),
+                .init(title: "Created", value: episode.created),
+            ]),
+            .characters(viewModel: characters.compactMap({ character in
+                return RMCharacterCollectionViewCellViewModel(
+                    characterName: character.name,
+                    characterStatus: character.status,
+                    characterImageURL: URL(string: character.image)
+                )
+            }))
+            
+        ]
+    }
   
     
     private func fetchRelatedCharacters(episode: RMEpisode) {
@@ -84,8 +106,8 @@ final class RMEpisodeDetailViewViewModel {
         
         group.notify(queue: .main) {
             self.dataTuple = (
-                episode,
-                characters
+                episode: episode,
+                characters: characters
             )
         }
     }
