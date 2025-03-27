@@ -31,14 +31,21 @@ struct RMSettingsView: View {
                 }
                 Text(viewModel.title)
                     .padding(.leading, 10)
+                Spacer()
             }
             .padding(.bottom, 3)
+            .contentShape(Rectangle())
+            .onTapGesture {
+                viewModel.onTapHandler(viewModel.type)
+            }
         }
     }
 }
 
 #Preview {
     RMSettingsView(viewModel: .init(cellViwModels: RMSettingsOption.allCases.compactMap({
-        return RMSettingsCellViewModel(type: $0)
+        return RMSettingsCellViewModel(type: $0) { option in
+            
+        }
     })))
 }
