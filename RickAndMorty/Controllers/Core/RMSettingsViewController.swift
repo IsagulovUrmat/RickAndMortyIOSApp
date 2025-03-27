@@ -5,6 +5,7 @@
 //  Created by sunflow on 19/3/25.
 //
 
+import StoreKit
 import SafariServices
 import SwiftUI
 import UIKit
@@ -55,6 +56,9 @@ final class RMSettingsViewController: UIViewController {
             present(vc, animated: true)
         } else if option == .rateApp {
             // show rating prompt
+            if let windowScene = view.window?.windowScene {
+                AppStore.requestReview(in: windowScene)
+            }
         }
     }
 
