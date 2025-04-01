@@ -7,13 +7,19 @@
 
 import UIKit
 
+protocol RMSearchViewDelegate: AnyObject {
+    func searchView(_ searchView: RMSearchView, didSelectOption option: RMSearchInputViewViewModel.DynamicOption)
+}
 final class RMSearchView: UIView {
+    
+    weak var delegate: RMSearchViewDelegate?
     
     private let viewModel: RMSearchViewViewModel
     
     // MARK: - Subviews
-    
+     
     private let noResultsView = RMNoSearchResultsView()
+    private let searchInputView = RMSearchInputView()
     
     // MARK: - Init
     init(frame: CGRect, viewModel: RMSearchViewViewModel) {
@@ -21,8 +27,11 @@ final class RMSearchView: UIView {
         super.init(frame: frame)
         backgroundColor = .systemBackground
         translatesAutoresizingMaskIntoConstraints = false
-        addSubviews(noResultsView)
+        addSubviews(noResultsView, searchInputView)
         addConstraints()
+        
+        searchInputView.configure(with: RMSearchInputViewViewModel(type: viewModel.config.type))
+        searchInputView.delegate = self
     }
     
     required init?(coder: NSCoder) {
@@ -31,11 +40,22 @@ final class RMSearchView: UIView {
     
     private func addConstraints() {
         NSLayoutConstraint.activate([
+            // Searh input view
+            searchInputView.topAnchor.constraint(equalTo: topAnchor),
+            searchInputView.leadingAnchor.constraint(equalTo: leadingAnchor),
+            searchInputView.trailingAnchor.constraint(equalTo: trailingAnchor),
+            searchInputView.heightAnchor.constraint(equalToConstant: viewModel.config.type == .episode ? 55 : 110),
+            
+            // No results
             noResultsView.widthAnchor.constraint(equalToConstant: 150),
             noResultsView.heightAnchor.constraint(equalToConstant: 150),
             noResultsView.centerXAnchor.constraint(equalTo: centerXAnchor),
             noResultsView.centerYAnchor.constraint(equalTo: centerYAnchor),
         ])
+    }
+    
+    public func presentKeyboard() {
+        searchInputView.presentKeyboard()
     }
 }
 
@@ -52,4 +72,13 @@ extension RMSearchView: UICollectionViewDelegate, UICollectionViewDataSource {
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         collectionView.deselectItem(at: indexPath, animated: true)
     }
+}
+
+// MARK: - RMSearchInputViewDelegate
+extension RMSearchView: RMSearchInputViewDelegate {
+    func rmSearchInputView(_ inputView: RMSearchInputView, didSelectOption option: RMSearchInputViewViewModel.DynamicOption) {
+        delegate?.searchView(self, didSelectOption: option)
+    }
+    
+    
 }
