@@ -15,7 +15,7 @@ class RMSearchViewViewModel {
     
     private var optionMapUpdateBlock: (((RMSearchInputViewViewModel.DynamicOption, String)) -> Void)?
     
-    private var searchResultsHandler: (() -> Void)?
+    private var searchResultsHandler: ((RMSearchResultsViewModel) -> Void)?
     
     // MARK: - Init
     init(config: RMSearchViewController.Config) {
@@ -23,16 +23,17 @@ class RMSearchViewViewModel {
     }
     
     // MARK: - Public
-    public func registerSearchResultHandler(_ block: @escaping () -> Void) {
+    public func registerSearchResultHandler(_ block: @escaping (RMSearchResultsViewModel) -> Void) {
         self.searchResultsHandler = block
     }
     
     public func executeSearch() {
-        searcText = "Rick"
+        
+        print("Search text "+searcText)
         
         // Build arguments
         var queryParams: [URLQueryItem] = [
-            URLQueryItem(name: "mame", value: searcText)
+            URLQueryItem(name: "name", value: searcText.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed))
         ]
         
         // Add options
@@ -45,15 +46,49 @@ class RMSearchViewViewModel {
         // Create request
         let request = RMRequest(endpoint: config.type.endpoint, queryParameters: queryParams)
         
-        print(request.url?.absoluteString)
+        switch config.type.endpoint {
+        case .character:
+            makeSearchAPIcall(RMGetAllCharactersResponse.self, request: request)
+        case .location:
+            makeSearchAPIcall(RMGetLocationsResponse.self, request: request)
+        case .episode:
+            makeSearchAPIcall(RMGetAllEpisodesResponse.self, request: request)
+        }
         
-        RMService.shared.execute(request, expecting: RMGetAllCharactersResponse.self) { result in
+    }
+    
+    private func makeSearchAPIcall<T: Codable>(_ type: T.Type, request: RMRequest) {
+        RMService.shared.execute(request, expecting: type) { [weak self] result in
             switch result {
             case .success(let model):
-                print("search results found: \(model.results.count)")
+                self?.processSearchResults(model: model)
             case .failure:
+                print("Failed to get results")
                 break
             }
+        }
+    }
+    
+    private func processSearchResults(model: Codable) {
+        var resultsVM: RMSearchResultsViewModel?
+        if let characterResults = model as? RMGetAllCharactersResponse {
+            resultsVM = .characters(characterResults.results.compactMap({
+                return RMCharacterCollectionViewCellViewModel(characterName: $0.name, characterStatus: $0.status, characterImageURL: URL(string: $0.image))
+            }))
+        } else if let locationResults = model as? RMGetLocationsResponse {
+            resultsVM = .locations(locationResults.results.compactMap({
+                return RMLocationTableViewCellViewModel(location: $0)
+            }))
+        }  else if let episodeResults = model as? RMGetAllEpisodesResponse {
+            resultsVM = .episodes(episodeResults.results.compactMap({
+                return RMCharacterEpisodeCollectionViewCellViewModel(episodeDataURL: URL(string: $0.url))
+            }))
+        }
+        
+        if let results = resultsVM {
+            self.searchResultsHandler?(results)
+        } else {
+            // fallback error
         }
     }
     
