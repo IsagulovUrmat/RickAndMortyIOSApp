@@ -34,7 +34,7 @@ class RMSearchViewViewModel {
     }
     
     public func executeSearch() {
-        
+        guard !searcText.trimmingCharacters(in: .whitespaces).isEmpty else { return }
         
         // Build arguments
         var queryParams: [URLQueryItem] = [
@@ -75,24 +75,29 @@ class RMSearchViewViewModel {
     }
     
     private func processSearchResults(model: Codable) {
-        var resultsVM: RMSearchResultsViewModel?
+        var resultsVM: RMSearchResultsType?
+        var nextUrl: String?
         if let characterResults = model as? RMGetAllCharactersResponse {
             resultsVM = .characters(characterResults.results.compactMap({
                 return RMCharacterCollectionViewCellViewModel(characterName: $0.name, characterStatus: $0.status, characterImageURL: URL(string: $0.image))
             }))
+            nextUrl = characterResults.info.next
         } else if let locationResults = model as? RMGetLocationsResponse {
             resultsVM = .locations(locationResults.results.compactMap({
                 return RMLocationTableViewCellViewModel(location: $0)
             }))
+            nextUrl = locationResults.info.next
         }  else if let episodeResults = model as? RMGetAllEpisodesResponse {
             resultsVM = .episodes(episodeResults.results.compactMap({
                 return RMCharacterEpisodeCollectionViewCellViewModel(episodeDataURL: URL(string: $0.url))
             }))
+            nextUrl = episodeResults.info.next
         }
         
         if let results = resultsVM {
             self.searchREsultsModel = model
-            self.searchResultsHandler?(results)
+            let vm = RMSearchResultsViewModel(results: results, next: nextUrl)
+            self.searchResultsHandler?(vm)
         } else {
             // fallback error
             handleNoResults()
