@@ -77,6 +77,7 @@ final class RMCharacterListViewViewModel: NSObject {
                 let info = responseModel.info
                 self.apiInfo = info
                 
+                // TODO: Fix the bug (fixed in character search pagination)
                 let originalCount = self.characters.count
                 let newCount = moreResults.count
                 let total = originalCount + newCount
@@ -132,11 +133,9 @@ extension RMCharacterListViewViewModel: UICollectionViewDataSource, UICollection
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
         
-        let isIphone = UIDevice.current.userInterfaceIdiom == .phone
-        
         let bounds = collectionView.bounds
         let width: CGFloat
-        if isIphone {
+        if UIDevice.isiPhone {
             width = (bounds.width - 30) / 2
         } else {
             // mac | ipad
