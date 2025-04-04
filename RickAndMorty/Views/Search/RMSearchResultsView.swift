@@ -216,10 +216,23 @@ extension RMSearchResultsView: UIScrollViewDelegate {
             let totalScrollViewFixedHeight = scrollView.frame.size.height
             
             if offset >= (totalContentHeight - totalScrollViewFixedHeight - 120) {
-                
                 viewModel.fetchAdditionalResults { [weak self] newResult in
-                    self?.tableView.tableFooterView = nil
-                    self?.collectionViewCellViewModels = newResult
+                    guard let self = self else { return }
+                    
+                    DispatchQueue.main.async {
+                        self.tableView.tableFooterView = nil
+                        
+                        let originalResults = self.collectionViewCellViewModels.count
+                        let newCount = (newResult.count - originalResults)
+                        let total = originalResults+newCount
+                        let startingIndex = total - newCount
+                        let indexPathToAdd: [IndexPath] = Array(startingIndex..<(startingIndex+newCount)).compactMap({
+                            return IndexPath(row: $0, section: 0)
+                        })
+                        self.collectionView.insertItems(at: indexPathToAdd)
+                        
+                        self.collectionViewCellViewModels = newResult
+                    }
                     
                 }
             }
